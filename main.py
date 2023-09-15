@@ -176,6 +176,8 @@ def probability(percent):
 def pressed(e=None):
     global last_key
 
+    # if e.keycode == ... #TODO
+
     if help_actiavted:
         help1_lbl.destroy()
 
@@ -231,7 +233,6 @@ def logic():
     
     if every_n_tick(30):
         increase_speed()
-        print(speed)
 
     if every_n_tick(60):
         if started:
