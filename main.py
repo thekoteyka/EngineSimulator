@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter.messagebox import showerror
 
 BG = 'gray60'
 
@@ -75,7 +76,8 @@ modes = 'davlenie', 'burn'
 mode = 'davlenie'
 last_key = None
 started = False
-running = True
+running = True 
+distance = 0
 
 def increase_davlenie():
     davlenie = davlenie_progress.value
@@ -101,16 +103,17 @@ def increase_speed():
 def reduce_speed():
     speed = speed_progress.value
     if speed <= 0:
-        lose('2')
+        lose('Машина заглохла')
         return
     speed_progress.set_value(speed-1)
 
 def lose(reason):
     global running
     root['bg'] = 'red'
-    print(1123)
     running = False
-    
+    print()
+    showerror('Ты проиграл ахахахахаха', f'Причина: {reason}')
+
     
 
 def pressed(e=None):
@@ -132,6 +135,7 @@ def safe_sleep(ms):
 
 def switch_mode(e=None, force=False):
     global mode
+    root.unbind(f'<Shift-KeyRelease>')
     if mode == 'davlenie':
         mode = 'changing'
         davlenie_lbl.configure(fg=BG)
@@ -139,6 +143,7 @@ def switch_mode(e=None, force=False):
         safe_sleep(1000)
         mode = 'burn'
         burn_lbl.configure(fg='white')
+        root.bind(f'<Shift-KeyRelease>', switch_mode)
         
     else:
         mode = 'changing'
@@ -147,12 +152,13 @@ def switch_mode(e=None, force=False):
         safe_sleep(1000)
         mode = 'davlenie'
         davlenie_lbl.configure(fg='white')
+        root.bind(f'<Shift-KeyRelease>', switch_mode)
     
 def every_n_tick(n):
     return ticks % n == 0
 
 def logic():
-    global started
+    global started, distance
     speed = speed_progress.value
     davlenie = davlenie_progress.value
     burn = burn_progress.value
@@ -166,6 +172,14 @@ def logic():
     if every_n_tick(60):
         if started:
             reduce_speed()
+    
+    if every_n_tick(300):
+        distance += 0.1 * speed
+
+        distance *= 10
+        distance = int(distance)
+        distance /= 10
+        print(distance)
             
         
 
@@ -205,5 +219,5 @@ try:
     while root.winfo_exists():
         if running:
             run()
-except Exception:
-    pass
+except Exception as e:
+    print(e)
