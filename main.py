@@ -74,23 +74,47 @@ root['bg'] = BG
 modes = 'davlenie', 'burn'
 mode = 'davlenie'
 last_key = None
+started = False
+running = True
+
+def increase_davlenie():
+    davlenie = davlenie_progress.value
+    davlenie_progress.set_value(davlenie + 2)
+
+def increase_burn():
+    if davlenie_progress.value <= 2:
+        return
+    
+    if burn_progress.max_value-7 <= burn_progress.value:
+        return
+    burn = burn_progress.value
+    burn_progress.set_value(burn + 1)
+    davlenie_progress.value -= 2
+
+def increase_speed():
+    burn = burn_progress.value
+    if burn > 2:
+        speed = speed_progress.value
+        speed_progress.value += 1
+        burn_progress.value -= 2
+
+def reduce_speed():
+    speed = speed_progress.value
+    if speed <= 0:
+        lose('2')
+        return
+    speed_progress.set_value(speed-1)
+
+def lose(reason):
+    global running
+    root['bg'] = 'red'
+    print(1123)
+    running = False
+    
+    
 
 def pressed(e=None):
     global last_key
-
-    def increase_davlenie():
-        davlenie = davlenie_progress.value
-        davlenie_progress.set_value(davlenie + 2)
-
-    def increase_burn():
-        if davlenie_progress.value <= 2:
-            return
-        
-        if burn_progress.max_value-7 <= burn_progress.value:
-            return
-        burn = burn_progress.value
-        burn_progress.set_value(burn + 1)
-        davlenie_progress.value -= 2
 
     if e.char == last_key:
         return
@@ -112,7 +136,7 @@ def switch_mode(e=None, force=False):
         mode = 'changing'
         davlenie_lbl.configure(fg=BG)
         burn_lbl.configure(fg='red')
-        safe_sleep(2000)
+        safe_sleep(1000)
         mode = 'burn'
         burn_lbl.configure(fg='white')
         
@@ -120,9 +144,29 @@ def switch_mode(e=None, force=False):
         mode = 'changing'
         davlenie_lbl.configure(fg='red')
         burn_lbl.configure(fg=BG)
-        safe_sleep(2000)
+        safe_sleep(1000)
         mode = 'davlenie'
         davlenie_lbl.configure(fg='white')
+    
+def every_n_tick(n):
+    return ticks % n == 0
+
+def logic():
+    global started
+    speed = speed_progress.value
+    davlenie = davlenie_progress.value
+    burn = burn_progress.value
+
+    if speed > 2:
+        started = True
+    
+    if every_n_tick(30):
+        increase_speed()
+
+    if every_n_tick(60):
+        if started:
+            reduce_speed()
+            
         
 
 davlenie_lbl = Label(text='<', font='Arial 18', bg=BG, fg='white')
@@ -151,15 +195,15 @@ ticks = 0
 ticks_delay = 10
 def run():
     global ticks
-    speed_progress.set_value(100)
-    # davlenie_progress.set_value(65)
-    # burn_progress.set_value(30)
     davlenie_progress.update_all()
+    logic()
     root.update()
     root.after(ticks_delay)
     ticks += 1
+
 try:
     while root.winfo_exists():
-        run()
+        if running:
+            run()
 except Exception:
     pass
