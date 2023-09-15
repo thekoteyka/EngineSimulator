@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter.messagebox import showerror
 from pygame import mixer
+from random import uniform
 
 BG = 'gray60'
 
@@ -104,6 +105,8 @@ running = True
 distance = 0
 help_actiavted = False
 
+davlenie_blocked = False
+
 mixer.init()
 
 def playsound(sound):
@@ -117,8 +120,9 @@ def playsound(sound):
  
 
 def increase_davlenie():
-    davlenie = davlenie_progress.value
-    davlenie_progress.set_value(davlenie + 2)
+    if not davlenie_blocked:
+        davlenie = davlenie_progress.value
+        davlenie_progress.set_value(davlenie + 2)
 
 def increase_burn():
     if davlenie_progress.value <= 2:
@@ -127,13 +131,15 @@ def increase_burn():
     if burn_progress.max_value-7 <= burn_progress.value:
         return
     burn = burn_progress.value
-    burn_progress.set_value(burn + 1)
+    burn_progress.set_value(burn + 10)
     davlenie_progress.value -= 2
 
 def increase_speed():
     burn = burn_progress.value
     if burn > 2:
         speed = speed_progress.value
+        if speed_progress.max_value <= speed:
+            return
         speed_progress.value += 1
         burn_progress.value -= 2
 
@@ -155,11 +161,15 @@ def lose(reason):
     last_key = None
     started = False
     distance = 0
+    root.bind(f'<Shift-KeyRelease>', switch_mode)
 
     davlenie_progress.update_all()
     playsound('stop')
     running = True
 
+
+def probability(percent):
+    return uniform(0, 1) < percent/100
     
 
 def pressed(e=None):
@@ -182,7 +192,7 @@ def safe_sleep(ms):
     for i in range(ms // ticks_delay):
         run()
 
-def switch_mode(e=None, force=False):
+def switch_mode(e=None):
     global mode
     root.unbind(f'<Shift-KeyRelease>')
     if mode == 'davlenie':
@@ -206,6 +216,9 @@ def switch_mode(e=None, force=False):
 def every_n_tick(n):
     return ticks % n == 0
 
+def every_n_sec(seconds):
+    return ticks % (seconds*1000 / ticks_delay) == 0
+
 def logic():
     global started, distance
     speed = speed_progress.value
@@ -217,6 +230,7 @@ def logic():
     
     if every_n_tick(30):
         increase_speed()
+        print(speed)
 
     if every_n_tick(60):
         if started:
@@ -232,11 +246,25 @@ def logic():
             distance_lbl.configure(font='Arial 15')
             distance_lbl.configure(text=distance)
 
+    if every_n_sec(1):
+        if probability(5):
+            global davlenie_blocked
+            davlenie_progress.set_value(2)
+            davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill='red')
+            davlenie_blocked = True
+            safe_sleep(4000)
+            davlenie_blocked = False
+            davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill='purple')
+
+
+
     if ticks == 700 and last_key is None:
         global help_actiavted, help1_lbl
         help_actiavted = True
         help1_lbl = Label(text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре. Если ничего\nне происходит, переключи раскладку.\nНачни играть чтобы убрать это сообщение", justify='left', font='Arial 15', bg=BG)
         help1_lbl.place(x=1, y=5)
+
+    
             
         
 
@@ -261,7 +289,7 @@ root.bind(f'<Shift-KeyRelease>', switch_mode)
 
 root.protocol("WM_DELETE_WINDOW", lambda: root.destroy())
 
-speed_progress = ProgressBar(root, BG, 80, 10, 250, 100)
+speed_progress = ProgressBar(root, BG, 80, 10, 250, 30)
 davlenie_progress = ProgressBar(root, BG, 80, 43, 250, 100)
 burn_progress = ProgressBar(root, BG, 80, 75, 250, 100)
 
