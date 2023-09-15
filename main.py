@@ -85,31 +85,44 @@ def pressed(e=None):
     def increase_burn():
         if davlenie_progress.value <= 2:
             return
+        
+        if burn_progress.max_value-7 <= burn_progress.value:
+            return
         burn = burn_progress.value
         burn_progress.set_value(burn + 1)
         davlenie_progress.value -= 2
 
     if e.char == last_key:
         return
+    
     last_key = e.char
 
     if mode == 'davlenie':
         increase_davlenie()
     elif mode == 'burn':
         increase_burn()
-    
 
-def switch_mode(e=None):
+def safe_sleep(ms):
+    for i in range(ms // ticks_delay):
+        run()
+
+def switch_mode(e=None, force=False):
     global mode
     if mode == 'davlenie':
-        mode = 'burn'
+        mode = 'changing'
         davlenie_lbl.configure(fg=BG)
+        burn_lbl.configure(fg='red')
+        safe_sleep(2000)
+        mode = 'burn'
         burn_lbl.configure(fg='white')
         
     else:
+        mode = 'changing'
+        davlenie_lbl.configure(fg='red')
+        burn_lbl.configure(fg=BG)
+        safe_sleep(2000)
         mode = 'davlenie'
         davlenie_lbl.configure(fg='white')
-        burn_lbl.configure(fg=BG)
         
 
 davlenie_lbl = Label(text='<', font='Arial 18', bg=BG, fg='white')
@@ -125,6 +138,7 @@ Label(text="Сгорание", font=10, bg=BG).place(x=0, y=73)
 
 root.bind(f'<KeyRelease-z>', pressed)
 root.bind(f'<KeyRelease-x>', pressed)
+root.bind(f'<KeyRelease-c>', pressed)
 root.bind(f'<Shift-KeyRelease>', switch_mode)
 
 root.protocol("WM_DELETE_WINDOW", lambda: root.destroy())
@@ -133,11 +147,17 @@ speed_progress = ProgressBar(root, BG, 80, 10, 250, 100)
 davlenie_progress = ProgressBar(root, BG, 80, 43, 250, 100)
 burn_progress = ProgressBar(root, BG, 80, 75, 250, 100)
 
-
-while root.winfo_exists():
+ticks = 0
+ticks_delay = 10
+def run():
+    global ticks
     speed_progress.set_value(100)
     # davlenie_progress.set_value(65)
     # burn_progress.set_value(30)
     davlenie_progress.update_all()
     root.update()
-    root.after(10)
+    root.after(ticks_delay)
+    ticks += 1
+
+while root.winfo_exists():
+    run()
