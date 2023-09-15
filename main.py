@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter.messagebox import showerror
+from pygame import mixer
 
 BG = 'gray60'
 
@@ -67,6 +68,11 @@ class ProgressBar:
             for progress_bar in all_progress_bars:
                 progress_bar._go()
 
+    def reset(self):
+        self.marker_value = 0
+        self.set_value(0)
+        self.canvas.coords(self.marker, 4, 4, 16, 16)
+
 root = Tk()
 root.geometry('400x250')
 root.title('Симулятор двигателя?')
@@ -78,6 +84,16 @@ last_key = None
 started = False
 running = True 
 distance = 0
+
+# mixer.init()
+
+# def play(sound):
+#     if sound == 'death':
+#         sound
+
+#     mixer.music.load("1.mp3")
+#     mixer.music.play(loops=0)
+ 
 
 def increase_davlenie():
     davlenie = davlenie_progress.value
@@ -108,11 +124,21 @@ def reduce_speed():
     speed_progress.set_value(speed-1)
 
 def lose(reason):
-    global running
+    global running, started, last_key, distance
     root['bg'] = 'red'
     running = False
-    print()
-    showerror('Ты проиграл ахахахахаха', f'Причина: {reason}')
+    showerror('Ты проиграл ахахахахаха', f'Причина: {reason}\nДистанция: {distance} амогусов')
+    speed_progress.reset()
+    burn_progress.reset()
+    davlenie_progress.reset()
+    last_key = None
+    started = False
+    distance = 0
+    root['bg'] = BG
+
+    davlenie_progress.update_all()
+
+    running = True
 
     
 
@@ -180,6 +206,9 @@ def logic():
         distance = int(distance)
         distance /= 10
         print(distance)
+        if distance >0:
+            distance_lbl.configure(font='Arial 15')
+            distance_lbl.configure(text=distance)
             
         
 
@@ -192,6 +221,9 @@ burn_lbl.place(x=330, y=70)
 Label(text="Скорость", font=10, bg=BG).place(x=0, y=7)
 Label(text="Давление", font=10, bg=BG).place(x=0, y=40)
 Label(text="Сгорание", font=10, bg=BG).place(x=0, y=73)
+
+distance_lbl = Label(text='Расстояние', bg=BG, font="Arial 8")
+distance_lbl.place(x=330, y=7)
 
 
 root.bind(f'<KeyRelease-z>', pressed)
