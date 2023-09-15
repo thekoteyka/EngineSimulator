@@ -106,6 +106,7 @@ distance = 0
 help_actiavted = False
 
 davlenie_blocked = False
+burn_reduce_lock = False
 
 mixer.init()
 
@@ -131,7 +132,7 @@ def increase_burn():
     if burn_progress.max_value-7 <= burn_progress.value:
         return
     burn = burn_progress.value
-    burn_progress.set_value(burn + 10)
+    burn_progress.set_value(burn + 1)
     davlenie_progress.value -= 2
 
 def increase_speed():
@@ -261,6 +262,28 @@ def logic():
                 davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill='red')
             davlenie_blocked = False
             davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill='purple')
+    
+    if every_n_sec(1):
+        if probability(5) or (speed > 15 and probability(12)):
+            global burn_reduce_lock
+            if burn_reduce_lock:
+                return
+            
+            burn_reduce_lock = True
+            burn = burn_progress.value
+            if burn_progress.value <= 10:
+                burn_progress.set_value(0)
+            else:
+                burn_progress.set_value(burn-10)
+
+            burn_progress.canvas.itemconfig(burn_progress.marker, fill='red')
+            for i in range(2):
+                safe_sleep(250)
+                burn_progress.canvas.itemconfig(burn_progress.marker, fill='purple')
+                safe_sleep(250)
+                burn_progress.canvas.itemconfig(burn_progress.marker, fill='red')
+            burn_progress.canvas.itemconfig(burn_progress.marker, fill='purple')
+            burn_reduce_lock = False
 
 
 
