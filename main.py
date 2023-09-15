@@ -85,14 +85,16 @@ started = False
 running = True 
 distance = 0
 
-# mixer.init()
+mixer.init()
 
-# def play(sound):
-#     if sound == 'death':
-#         sound
-
-#     mixer.music.load("1.mp3")
-#     mixer.music.play(loops=0)
+def playsound(sound):
+    if sound == 'stop':
+        mixer.music.fadeout(10000)
+        print('ss')
+        return
+    print(13123)
+    mixer.music.load(f"{sound}.mp3")
+    mixer.music.play(loops=0, fade_ms=200)
  
 
 def increase_davlenie():
@@ -126,6 +128,7 @@ def reduce_speed():
 def lose(reason):
     global running, started, last_key, distance
     root['bg'] = 'red'
+    playsound('death')
     running = False
     showerror('Ты проиграл ахахахахаха', f'Причина: {reason}\nДистанция: {distance} амогусов')
     speed_progress.reset()
@@ -137,7 +140,7 @@ def lose(reason):
     root['bg'] = BG
 
     davlenie_progress.update_all()
-
+    playsound('stop')
     running = True
 
     
@@ -205,7 +208,6 @@ def logic():
         distance *= 10
         distance = int(distance)
         distance /= 10
-        print(distance)
         if distance >0:
             distance_lbl.configure(font='Arial 15')
             distance_lbl.configure(text=distance)
