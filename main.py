@@ -158,6 +158,8 @@ def run():
     root.update()
     root.after(ticks_delay)
     ticks += 1
-
-while root.winfo_exists():
-    run()
+try:
+    while root.winfo_exists():
+        run()
+except Exception:
+    pass
