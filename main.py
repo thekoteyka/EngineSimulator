@@ -74,9 +74,10 @@ class ProgressBar:
         self.canvas.coords(self.marker, 4, 4, 16, 16)
 
 root = Tk()
-root.geometry('400x250')
+root.geometry('400x110')
 root.title('Симулятор двигателя?')
 root['bg'] = BG
+root.resizable(False, False)
 
 modes = 'davlenie', 'burn'
 mode = 'davlenie'
@@ -84,6 +85,7 @@ last_key = None
 started = False
 running = True 
 distance = 0
+help_actiavted = False
 
 mixer.init()
 
@@ -148,6 +150,9 @@ def lose(reason):
 def pressed(e=None):
     global last_key
 
+    if help_actiavted:
+        help1_lbl.destroy()
+
     if e.char == last_key:
         return
     
@@ -211,6 +216,12 @@ def logic():
         if distance >0:
             distance_lbl.configure(font='Arial 15')
             distance_lbl.configure(text=distance)
+
+    if ticks == 700 and last_key is None:
+        global help_actiavted, help1_lbl
+        help_actiavted = True
+        help1_lbl = Label(text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре. Если ничего\nне происходит, переключи раскладку.\nНачни играть чтобы убрать это сообщение", justify='left', font='Arial 15', bg=BG)
+        help1_lbl.place(x=1, y=5)
             
         
 
