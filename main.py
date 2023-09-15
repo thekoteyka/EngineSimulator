@@ -247,12 +247,18 @@ def logic():
             distance_lbl.configure(text=distance)
 
     if every_n_sec(1):
-        if probability(5):
+        if probability(5) or (speed > 10 and probability(12)):
             global davlenie_blocked
+            if davlenie_blocked:
+                return
             davlenie_progress.set_value(2)
             davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill='red')
             davlenie_blocked = True
-            safe_sleep(4000)
+            for i in range(8):
+                safe_sleep(250)
+                davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill='purple')
+                safe_sleep(250)
+                davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill='red')
             davlenie_blocked = False
             davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill='purple')
 
