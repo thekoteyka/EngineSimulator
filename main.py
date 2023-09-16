@@ -98,7 +98,8 @@ root['bg'] = BG
 root.resizable(False, False)
 centerwindow(root)
 
-PLAY_SOUNDS = True
+MUTE_ALL_SOUNDS = False
+PLAY_BACKGROUND_MUSIC = True
 
 modes = 'davlenie', 'burn'  # Режимы игры (только для справки)
 mode = 'davlenie'  # Текущий режим
@@ -117,16 +118,16 @@ overheat = False
 
 mixer.init()  # Инициализация для звуков
 
-def playsound(sound):  # Играет звуки
-    if not PLAY_SOUNDS:
+def playsound(sound, loops=0, fade=200):  # Играет звуки
+    if MUTE_ALL_SOUNDS:
         return
     
     if sound == 'stop':
-        mixer.music.fadeout(5000)
+        mixer.music.fadeout(1000)
         return
     
     mixer.music.load(f"{sound}.mp3")
-    mixer.music.play(loops=0, fade_ms=200)
+    mixer.music.play(loops=loops, fade_ms=fade)
  
 # 2 давления = 1 сгорание
 # 2 сгорания = 1 скорость -> 4 давления = 1 скорость
@@ -180,7 +181,9 @@ def lose(reason):
 
     davlenie_progress.update_all()  # Обновляем новую позицию прогресс баров
     playsound('stop')  # Останавливаем звук смерти (с затуханием 10 секунд)
+    playsound('bg1', 10, 5000)
     running = True  # Снова запускаем игру
+    
 
 
 def probability(percent):  # Расчёт вероятности в процентах
@@ -386,6 +389,8 @@ def run():  # Основной цикл программы
 init(autoreset=True)
 CHECK_TRUE_TICKRATE = False
 try:
+    if PLAY_BACKGROUND_MUSIC:
+        playsound('bg1', 10, 5000)
     if not CHECK_TRUE_TICKRATE:  # Запуск цикла игры
         while root.winfo_exists():
             if running:
