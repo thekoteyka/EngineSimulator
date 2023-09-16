@@ -175,10 +175,9 @@ def probability(percent):  # Расчёт вероятности в процен
     return uniform(0, 1) < percent/100
     
 
-def pressed(e=None):  # При нажатии z, x, c
+def pressed(e=None):  # При нажатии
     global last_key
-    print(e.keycode)
-    if not (e.keycode == 90 or e.keycode == 88 or e.keycode == 67):
+    if not (e.keycode == 90 or e.keycode == 88 or e.keycode == 67):  # Проверяем, что мы нажали z, x или c
         return
     
     if help_actiavted:  # Если была активирована помощь, то закрываем её
