@@ -1,3 +1,6 @@
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'  # Убрать вывод от pygame типа "Hello from the pygame community. https://www.pygame.org/contribute.html"
+
 from tkinter import *
 from tkinter.messagebox import showerror
 from pygame import mixer
@@ -347,7 +350,7 @@ def logic():  # Динамическая логика
     if ticks == 700 and last_key is None:  # Если прошло уже 700 тиков и не было нажато клавиш управления, то вызываем помощь
         global help_actiavted, help1_lbl
         help_actiavted = True
-        help1_lbl = Label(text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре. Если ничего\nне происходит, переключи раскладку.\nНачни играть чтобы убрать это сообщение\n                       ", justify='left', font='Arial 15', bg=BG)
+        help1_lbl = Label(text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре.\nНачни играть чтобы убрать это сообщение\n                       ", justify='left', font='Arial 15', bg=BG)
         help1_lbl.place(x=1, y=5)
 
 
