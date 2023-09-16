@@ -100,7 +100,7 @@ centerwindow(root)
 
 modes = 'davlenie', 'burn'  # Режимы игры (только для справки)
 mode = 'davlenie'  # Текущий режим
-last_key = None  # Последняя нажатая клавиша управления
+last_key = None  # Номер последней нажатой клавиши управления
 started = False  # Запущен ли двигатель (скорость поднималась)
 running = True   # Запущена ли игра
 distance = 0  # Пройденное расстояние
@@ -177,16 +177,17 @@ def probability(percent):  # Расчёт вероятности в процен
 
 def pressed(e=None):  # При нажатии z, x, c
     global last_key
-
-    # if e.keycode == ... #TODO
-
+    print(e.keycode)
+    if not (e.keycode == 90 or e.keycode == 88 or e.keycode == 67):
+        return
+    
     if help_actiavted:  # Если была активирована помощь, то закрываем её
         help1_lbl.destroy()
 
-    if e.char == last_key:  # Если нажали ту же клавишу что и в прошлый раз, то ничего не делаем
+    if e.keycode == last_key:  # Если нажали ту же клавишу что и в прошлый раз, то ничего не делаем
         return
-    
-    last_key = e.char
+
+    last_key = e.keycode
 
     if mode == 'davlenie':  # Если в режиме давления, то увеличиваем его
         increase_davlenie()
@@ -314,9 +315,9 @@ distance_lbl = Label(text='Расстояние', bg=BG, font="Arial 8")  # По
 distance_lbl.place(x=330, y=7)
 
 
-root.bind(f'<KeyRelease-z>', pressed)  # Биндим кнопки для управления на отпускание клавиш
-root.bind(f'<KeyRelease-x>', pressed)
-root.bind(f'<KeyRelease-c>', pressed)
+root.bind(f'<KeyRelease>', pressed)  # Биндим кнопки для управления на отпускание клавиш
+# root.bind(f'<KeyRelease-x>', pressed)
+# root.bind(f'<KeyRelease-c>', pressed)
 root.bind(f'<Shift-KeyRelease>', switch_mode)
 
 root.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # При закрытии окна уничтожаем окно (важно, так как у нас while True)
@@ -325,7 +326,7 @@ speed_progress = ProgressBar(root, BG, 80, 10, 250, 30)  # Делаем прог
 davlenie_progress = ProgressBar(root, BG, 80, 43, 250, 100)
 burn_progress = ProgressBar(root, BG, 80, 75, 250, 100)
 
-  # Тики - основная еденица времени. 1 тик = <ticks_delay> милисекунд
+# Тики - основная еденица времени. 1 тик = <ticks_delay> милисекунд
 ticks = 0  # Общее количиство тиков
 ticks_delay = 10
 def run():  # Основной цикл программы
