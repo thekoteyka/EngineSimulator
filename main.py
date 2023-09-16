@@ -107,6 +107,7 @@ started = False  # Запущен ли двигатель (скорость по
 running = True   # Запущена ли игра
 distance = 0  # Пройденное расстояние
 help_actiavted = False  # Была ли активирована помощь (при бездействии)
+ticks_showed = False
 
 davlenie_blocked = False  # Заблокирована ли подкачка давления
 burn_reduce_lock = False  # Заблокирована ли верояность пробития клапана сгорания
@@ -124,8 +125,8 @@ def playsound(sound):  # Играет звуки
     mixer.music.load(f"{sound}.mp3")
     mixer.music.play(loops=0, fade_ms=200)
  
-  # 2 давления = 1 сгорание
-  # 2 сгорания = 1 скорость -> 4 давления = 1 скорость
+# 2 давления = 1 сгорание
+# 2 сгорания = 1 скорость -> 4 давления = 1 скорость
 def increase_davlenie():  # Увеличить давление (если возможно)
     if not davlenie_blocked:
         davlenie = davlenie_progress.value
@@ -298,12 +299,9 @@ def logic():  # Динамическая логика
     if ticks == 700 and last_key is None:  # Если прошло уже 700 тиков и не было нажато клавиш управления, то вызываем помощь
         global help_actiavted, help1_lbl
         help_actiavted = True
-        help1_lbl = Label(text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре. Если ничего\nне происходит, переключи раскладку.\nНачни играть чтобы убрать это сообщение", justify='left', font='Arial 15', bg=BG)
+        help1_lbl = Label(text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре. Если ничего\nне происходит, переключи раскладку.\nНачни играть чтобы убрать это сообщение\n                       ", justify='left', font='Arial 15', bg=BG)
         help1_lbl.place(x=1, y=5)
 
-    
-            
-        
 
 davlenie_lbl = Label(text='<', font='Arial 18', bg=BG, fg='white')
 davlenie_lbl.place(x=330, y=38)
@@ -320,8 +318,6 @@ distance_lbl.place(x=330, y=7)
 
 
 root.bind(f'<KeyRelease>', pressed)  # Биндим кнопки для управления на отпускание клавиш
-# root.bind(f'<KeyRelease-x>', pressed)
-# root.bind(f'<KeyRelease-c>', pressed)
 root.bind(f'<Shift-KeyRelease>', switch_mode)
 
 root.protocol("WM_DELETE_WINDOW", lambda: root.destroy())  # При закрытии окна уничтожаем окно (важно, так как у нас while True)
@@ -333,6 +329,7 @@ burn_progress = ProgressBar(root, BG, 80, 75, 250, 100)
 # Тики - основная еденица времени. 1 тик = <ticks_delay> милисекунд
 ticks = 0  # Общее количиство тиков
 ticks_delay = 10
+from time import time
 def run():  # Основной цикл программы
     global ticks
     davlenie_progress.update_all()  # Обновляем прогресс бары
@@ -340,15 +337,23 @@ def run():  # Основной цикл программы
     root.update()  # Обновляем окно (на всякий случай)
     root.after(ticks_delay)  # Ждём 1 тик (по времени)
     ticks += 1  # Добавляем тик
-
+    
+init(autoreset=True)
+CHECK_TRUE_TICKRATE = False
 try:
-    while root.winfo_exists():
-        if running:
+    if not CHECK_TRUE_TICKRATE:  # Запуск цикла игры
+        while root.winfo_exists():
+            if running:
+                run()
+    else:  # Проверка тиков
+        print(f'{Fore.CYAN}Проверка тиков')
+        start = time()
+        for i in range(1000):
             run()
+        print(f'Истинная задержка тиков: {Fore.YELLOW}{round(time()-start, 1)}\n{Fore.WHITE}Задержка тиков в идеальном случае: {Fore.YELLOW}{ticks_delay}.0')
 except Exception as e:
     skipping_exceptions = ('can\'t invoke "winfo" command: application has been destroyed',), ('invalid command name ".!canvas"',),\
                           ('invalid command name ".!canvas2"',), ('invalid command name ".!canvas3"',)
     if not e.args in skipping_exceptions:
-        init(autoreset=True)
         print(f'{Fore.RED}{e.args}')
         
