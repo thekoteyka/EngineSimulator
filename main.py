@@ -98,6 +98,8 @@ root['bg'] = BG
 root.resizable(False, False)
 centerwindow(root)
 
+PLAY_SOUNDS = True
+
 modes = 'davlenie', 'burn'  # Режимы игры (только для справки)
 mode = 'davlenie'  # Текущий режим
 last_key = None  # Номер последней нажатой клавиши управления
@@ -112,6 +114,9 @@ burn_reduce_lock = False  # Заблокирована ли верояность
 mixer.init()  # Инициализация для звуков
 
 def playsound(sound):  # Играет звуки
+    if not PLAY_SOUNDS:
+        return
+    
     if sound == 'stop':
         mixer.music.fadeout(5000)
         return
@@ -160,7 +165,7 @@ def lose(reason):
     speed_progress.reset()  # Сбрасываем прогресс бары
     burn_progress.reset()
     davlenie_progress.reset()
-    last_key = None
+    last_key = 'None'  # Чтобы не вызывалась помощь
     started = False  # Глушим двигатель
     distance = 0  # Сбрасываем дистанцию
     distance_lbl.configure(text=0)
