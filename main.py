@@ -111,6 +111,8 @@ ticks_showed = False
 
 davlenie_blocked = False  # Заблокирована ли подкачка давления
 burn_reduce_lock = False  # Заблокирована ли верояность пробития клапана сгорания
+speed_invisible_lock = False
+ready_to_visible_speed = False
 
 mixer.init()  # Инициализация для звуков
 
@@ -255,6 +257,31 @@ def logic():  # Динамическая логика
         if distance >0:
             distance_lbl.configure(font='Arial 15')
             distance_lbl.configure(text=distance)
+    
+    if every_n_sec(1):  # Каждую секунду с шансом 5% или 12% если скорость меньше 10
+        global speed_invisible_lock, ready_to_visible_speed
+        if probability(5) or (speed < 10 and probability(12)):  # Прячем маркер скорости
+            if speed_invisible_lock or ready_to_visible_speed:
+                return
+            speed_invisible_lock = True
+            speed_progress.canvas.itemconfig(speed_progress.marker, fill=BG)
+            safe_sleep(700)
+            speed_progress.canvas.itemconfig(speed_progress.marker, fill='purple')
+            safe_sleep(700)
+            speed_progress.canvas.itemconfig(speed_progress.marker, fill=BG)
+            ready_to_visible_speed = True
+
+    if every_n_sec(10):  # Каждые 10 секунд возвращаем маркер скорости, если его не было
+        if speed_invisible_lock and ready_to_visible_speed:
+            ready_to_visible_speed = False
+            speed_progress.canvas.itemconfig(speed_progress.marker, fill='purple')
+            safe_sleep(300)
+            speed_progress.canvas.itemconfig(speed_progress.marker, fill=BG)
+            safe_sleep(300)
+            speed_progress.canvas.itemconfig(speed_progress.marker, fill='purple')
+            safe_sleep(300)
+            speed_invisible_lock = False
+            
 
     if every_n_sec(1):  # Каждую секунду с шансом 5% или 12% если скорость выше 10
         if probability(5) or (speed > 10 and probability(12)):
