@@ -113,6 +113,7 @@ davlenie_blocked = False  # Заблокирована ли подкачка д�
 burn_reduce_lock = False  # Заблокирована ли верояность пробития клапана сгорания
 speed_invisible_lock = False
 ready_to_visible_speed = False
+overheat = False
 
 mixer.init()  # Инициализация для звуков
 
@@ -132,7 +133,10 @@ def playsound(sound):  # Играет звуки
 def increase_davlenie():  # Увеличить давление (если возможно)
     if not davlenie_blocked:
         davlenie = davlenie_progress.value
-        davlenie_progress.set_value(davlenie + 2)  # Накачиваем по 2 давления за раз
+        if overheat:
+            davlenie_progress.set_value(davlenie + 1)  # Если перегрев, то накачиваем по 1 давления за раз
+        else:
+            davlenie_progress.set_value(davlenie + 2)  # Накачиваем по 2 давления за раз
 
 def increase_burn():  # Увеличить сгорание (если возможно)
     if davlenie_progress.value <= 2:
@@ -320,6 +324,20 @@ def logic():  # Динамическая логика
                 burn_progress.canvas.itemconfig(burn_progress.marker, fill='red')
             burn_progress.canvas.itemconfig(burn_progress.marker, fill='purple')
             burn_reduce_lock = False  # Разблокируем повторный запуск функции
+    
+    if every_n_sec(1):  # Каждую секунду с шансом 3% или 7% если давление больше 30 или 10% если давление больше 70
+        if probability(3) or (davlenie > 30 and probability(7)) or (davlenie > 70 and probability(10)) :
+            global overheat
+            if overheat:
+                return
+            
+            overheat = True
+            davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill='orange')
+        
+    if every_n_sec(10):  # Каждые 10 секунд выключаем перегрев, если он был
+        if overheat:
+            overheat = False
+            davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill='purple')
 
 
 
