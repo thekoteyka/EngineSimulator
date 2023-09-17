@@ -145,6 +145,24 @@ def playsound(sound, loops=0, fade=200):  # Играет звуки
     mixer.music.play(loops=loops, fade_ms=fade)
 
 
+def open_scores(e=None):
+    more = Tk()
+    more.geometry("400x110")
+    more.title("Рекорды")
+    more["bg"] = BG
+    more.resizable(False, False)
+    centerwindow(more)
+
+    txt = Text(more, bg='lightgray', fg='purple')
+    txt.place(x=5, y=5, width=230, height=100)
+
+    sorted_scores = {k: v for k, v in sorted(get_scores().items(), key=lambda item: item[1], reverse=True)}  # 💀💀💀 StackOverflow
+    for date, score in sorted_scores.items():
+        txt.insert(END, f'[{date}]: {score}\n')
+
+
+
+
 # 2 давления = 1 сгорание
 # 2 сгорания = 1 скорость -> 4 давления = 1 скорость
 def increase_davlenie():  # Увеличить давление (если возможно)
@@ -189,7 +207,7 @@ def reduce_speed():  # Стабильное уменьшение скорост�
     speed_progress.set_value(speed - 1)
 
 
-def get_scores():
+def get_scores() -> dict:
     with open("scores.json", "r") as f:
         records = json.load(f)
         return records
@@ -469,6 +487,8 @@ distance_lbl = Label(
 )  # Потом заменим на число пройденных амогусов
 distance_lbl.place(x=330, y=7)
 
+
+root.bind('q', open_scores)
 
 root.bind(f"<KeyRelease>", pressed)  # Биндим кнопки для управления на отпускание клавиш
 root.bind(f"<Shift-KeyRelease>", switch_mode)
