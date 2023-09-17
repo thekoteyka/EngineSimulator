@@ -153,11 +153,35 @@ def open_scores(e=None):
     more.resizable(False, False)
     centerwindow(more)
 
+    def sort_date():
+        txt.delete(1.0, END)
+        for date, score in get_scores().items():
+            txt.insert(END, f'[{date}]: {score}\n')
+        date_btn.configure(fg='cyan')
+        record_btn.configure(fg='black')
+        record_btn.configure(activeforeground='black')
+        date_btn.configure(activeforeground='cyan')
+
+    def sort_record():
+        txt.delete(1.0, END)
+        for date, score in sorted_record_scores.items():
+            txt.insert(END, f'[{date}]: {score}\n')
+        date_btn.configure(fg='black')
+        record_btn.configure(fg='cyan')
+        record_btn.configure(activeforeground='cyan')
+        date_btn.configure(activeforeground='black')
+
+    Label(more, text="Сортировать:", bg=BG, font='Arial 15').place(x=250, y=2)
+    date_btn = Button(more, text='Дата', bg=BG, command=sort_date, border=0, activebackground=BG)
+    date_btn.place(x=253, y=35, width=55, height=25)
+    record_btn = Button(more, text='Рекорд', bg=BG, command=sort_record, border=0, fg='cyan', activebackground=BG, activeforeground='cyan')
+    record_btn.place(x=320, y=35, width=55, height=25)
+
     txt = Text(more, bg='lightgray', fg='purple')
     txt.place(x=5, y=5, width=230, height=100)
 
-    sorted_scores = {k: v for k, v in sorted(get_scores().items(), key=lambda item: item[1], reverse=True)}  # 💀💀💀 StackOverflow
-    for date, score in sorted_scores.items():
+    sorted_record_scores = {k: v for k, v in sorted(get_scores().items(), key=lambda item: item[1], reverse=True)}  # 💀💀💀 StackOverflow
+    for date, score in sorted_record_scores.items():
         txt.insert(END, f'[{date}]: {score}\n')
 
 
@@ -486,7 +510,6 @@ distance_lbl = Label(
     text="Расстояние", bg=BG, font="Arial 8"
 )  # Потом заменим на число пройденных амогусов
 distance_lbl.place(x=330, y=7)
-
 
 root.bind('q', open_scores)
 
