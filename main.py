@@ -7,7 +7,7 @@ environ[
 from tkinter import *
 from tkinter.messagebox import showerror, showinfo
 from pygame import mixer
-from random import uniform
+from random import uniform, choice
 from colorama import init, Fore
 import json
 import datetime
@@ -153,19 +153,25 @@ def open_scores(e=None):
     more.resizable(False, False)
     centerwindow(more)
 
+    scores_exists = bool(get_scores())
+
+    #TODO если ещё нету рекордов (список путой), то добавить в txt типо "ещё нету рекордов"
+
     def sort_date():
-        txt.delete(1.0, END)
-        for date, score in get_scores().items():
-            txt.insert(END, f'[{date}]: {score}\n')
+        if scores_exists:
+            txt.delete(1.0, END)
+            for date, score in get_scores().items():
+                txt.insert(END, f'[{date}]: {score}\n')
         date_btn.configure(fg='cyan')
         record_btn.configure(fg='black')
         record_btn.configure(activeforeground='black')
         date_btn.configure(activeforeground='cyan')
 
     def sort_record():
-        txt.delete(1.0, END)
-        for date, score in sorted_record_scores.items():
-            txt.insert(END, f'[{date}]: {score}\n')
+        if scores_exists:
+            txt.delete(1.0, END)
+            for date, score in sorted_record_scores.items():
+                txt.insert(END, f'[{date}]: {score}\n')
         date_btn.configure(fg='black')
         record_btn.configure(fg='cyan')
         record_btn.configure(activeforeground='cyan')
@@ -180,9 +186,18 @@ def open_scores(e=None):
     txt = Text(more, bg='lightgray', fg='purple')
     txt.place(x=5, y=5, width=230, height=100)
 
-    sorted_record_scores = {k: v for k, v in sorted(get_scores().items(), key=lambda item: item[1], reverse=True)}  # 💀💀💀 StackOverflow
-    for date, score in sorted_record_scores.items():
-        txt.insert(END, f'[{date}]: {score}\n')
+    if scores_exists:
+        sorted_record_scores = {k: v for k, v in sorted(get_scores().items(), key=lambda item: item[1], reverse=True)}  # 💀💀💀 StackOverflow
+        for date, score in sorted_record_scores.items():
+            txt.insert(END, f'[{date}]: {score}\n')
+    else:
+        no_records_texts = (
+            'Твои рекорды будут здесь!',
+            'Тут пока что нету рекордов,\nно они обязательно появятся!',
+            'Сыграй хотя-бы 1 раз и тут\nбудет результат',
+            "Сможешь доехать до 30\nамогусов? Даже если нет, то\nрезультат всё равно будет\nтут"
+        )
+        txt.insert(END, choice(no_records_texts))
 
 
 
@@ -388,10 +403,10 @@ def logic():  # Динамическая логика
             distance_lbl.configure(font="Arial 15")
             distance_lbl.configure(text=distance)
 
-    # Каждую секунду с шансом 5% или 12% если скорость меньше 10
+    # Каждую секунду с шансом 5% или 7% если скорость меньше 10
     if every_n_sec(1):
         global speed_invisible_lock, ready_to_visible_speed
-        if probability(5) or (speed < 10 and probability(12)):  # Прячем маркер скорости
+        if probability(5) or (speed < 10 and probability(7)):  # Прячем маркер скорости
             if speed_invisible_lock or ready_to_visible_speed:
                 return
             speed_invisible_lock = True
