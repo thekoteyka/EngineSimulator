@@ -5,7 +5,7 @@ environ[
 ] = "1"  # Убрать вывод от pygame типа "Hello from the pygame community. https://www.pygame.org/contribute.html"
 
 from tkinter import *
-from tkinter.messagebox import showerror
+from tkinter.messagebox import showerror, showinfo
 from pygame import mixer
 from random import uniform
 from colorama import init, Fore
@@ -189,11 +189,21 @@ def reduce_speed():  # Стабильное уменьшение скорост�
     speed_progress.set_value(speed - 1)
 
 
-def best_record():
+def get_scores():
     with open("scores.json", "r") as f:
         records = json.load(f)
-        return max(records.values())
+        return records
+    
+def check_if_new_record(distance):
+    scores:dict = get_scores()
+    print(scores)
+    for date, score in scores.items():
+        now = datetime.datetime.now()
+        time_now = now.strftime("%d.%m.%Y %H:%M:%S")
+        if date == time_now:
+            return max(scores.values()) == score
 
+check_if_new_record(10)
 
 def add_score(score):
     with open("scores.json", "r") as f:
@@ -211,9 +221,16 @@ def lose(reason):
     global running, started, last_key, distance
     playsound("death")  # Играем звук смерти из дорс
     running = False  # Временно останавливаем игру
-    showerror(
-        "Ты проиграл ахахахахаха", f"Причина: {reason}\nДистанция: {distance} амогусов"
-    )
+    add_score(distance)
+
+    if check_if_new_record(distance):
+        showinfo(
+        "Новый рекорд!", f"Причина: {reason}\nНовый рекорд! {distance} амогусов"
+        )
+    else:
+        showerror(
+            "Ты проиграл ахахахахаха", f"Причина: {reason}\nДистанция: {distance} амогусов"
+        )
     speed_progress.reset()  # Сбрасываем прогресс бары
     burn_progress.reset()
     davlenie_progress.reset()
@@ -310,7 +327,7 @@ def logic():  # Динамическая логика
     davlenie = davlenie_progress.value
     burn = burn_progress.value
 
-    if speed > 2:
+    if speed > 0:
         started = True  # Если поехали, то считаем двигатель заведённым
 
     # Каждые 30 тиков пробуем увеличить скорость
