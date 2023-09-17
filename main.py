@@ -11,6 +11,7 @@ from random import uniform, choice
 from colorama import init, Fore
 import json
 import datetime
+import platform
 
 BG = "gray60"
 
@@ -109,8 +110,11 @@ root["bg"] = BG
 root.resizable(False, False)
 centerwindow(root)
 
-# ВАЖНО: УКАЖИ СВОЮ СИСТЕМУ WINDOWS или MACOS
-SYSTEM = "win"  # win / mac
+# Автоопределение системы!
+if platform.system() == 'Windows':
+    SYSTEM = 'win'
+elif platform.system() == 'Darwin':
+    SYSTEM = 'max'
 
 MUTE_ALL_SOUNDS = False
 PLAY_BACKGROUND_MUSIC = True
