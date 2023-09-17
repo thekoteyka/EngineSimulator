@@ -153,9 +153,49 @@ def open_scores(e=None):
     more.resizable(False, False)
     centerwindow(more)
 
+    # more.protocol("WM_DELETE_WINDOW", lambda: root.destroy()) # для разработки
+
     scores_exists = bool(get_scores())
 
-    #TODO если ещё нету рекордов (список путой), то добавить в txt типо "ещё нету рекордов"
+    def clear_records_file():
+        with open('scores.json', 'w') as f:
+            json.dump({}, f)
+
+        txt.delete(1.0, END)
+        txt.insert(END, 'Вся статистика была удалена')
+
+    def show_delete_btn(e=None):
+        del_stat_lbl.destroy()
+        b = Button(more, text='Удалить статистику', bg='gray', activebackground='gray', border=0)
+        b.place(x=250, y=75, width=130)
+ 
+        percent_sending = 0  # | Сделано чтобы считывать удерживание кнопки
+        null = False         # |
+        percent_sending_lbl = Label(more, bg=BG)
+
+        def update_clock(e=None):
+            percent_sending_lbl.place(x=250, y=54)
+            percent_sending_lbl.configure(fg='black')
+            nonlocal percent_sending, null
+            null = False
+            for i in range(100):
+                if null:
+                    break
+                percent_sending += 1
+                percent_sending_lbl.configure(text=f'{percent_sending}%')
+                more.after(40)
+                more.update()
+                if percent_sending == 100:
+                    clear_records_file()
+    
+        def stop_clock(e=None):
+            nonlocal percent_sending, null
+            null = True
+            percent_sending = 0
+            percent_sending_lbl.configure(fg=BG)
+
+        b.bind('<ButtonPress-1>', update_clock)
+        b.bind('<ButtonRelease-1>', stop_clock)
 
     def sort_date():
         if scores_exists:
@@ -176,6 +216,10 @@ def open_scores(e=None):
         record_btn.configure(fg='cyan')
         record_btn.configure(activeforeground='cyan')
         date_btn.configure(activeforeground='black')
+
+    more.bind(f"<Shift-KeyRelease>", show_delete_btn)
+    del_stat_lbl = Label(more, text='Нажми Shift для\nудаления статистики', bg=BG, fg='lightgray')
+    del_stat_lbl.place(x=254, y=65)
 
     Label(more, text="Сортировать:", bg=BG, font='Arial 15').place(x=250, y=2)
     date_btn = Button(more, text='Дата', bg=BG, command=sort_date, border=0, activebackground=BG)
@@ -198,8 +242,6 @@ def open_scores(e=None):
             "Сможешь доехать до 30\nамогусов? Даже если нет, то\nрезультат всё равно будет\nтут"
         )
         txt.insert(END, choice(no_records_texts))
-
-
 
 
 # 2 давления = 1 сгорание
@@ -250,7 +292,8 @@ def get_scores() -> dict:
     with open("scores.json", "r") as f:
         records = json.load(f)
         return records
-    
+
+
 def check_if_new_record(distance):
     scores:dict = get_scores()
     for date, score in scores.items():
