@@ -114,7 +114,7 @@ centerwindow(root)
 if platform.system() == 'Windows':
     SYSTEM = 'win'
 elif platform.system() == 'Darwin':
-    SYSTEM = 'max'
+    SYSTEM = 'maс'
 
 MUTE_ALL_SOUNDS = False
 PLAY_BACKGROUND_MUSIC = True
