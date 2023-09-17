@@ -203,12 +203,9 @@ def check_if_new_record(distance):
         if date == time_now:
             return max(scores.values()) == score
 
-check_if_new_record(10)
-
 def add_score(score):
     with open("scores.json", "r") as f:
         records: dict = json.load(f)
-    print(records)
 
     with open("scores.json", "w+") as f:
         now = datetime.datetime.now()
