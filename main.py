@@ -238,7 +238,6 @@ def get_scores() -> dict:
     
 def check_if_new_record(distance):
     scores:dict = get_scores()
-    print(scores)
     for date, score in scores.items():
         now = datetime.datetime.now()
         time_now = now.strftime("%d.%m.%Y %H:%M:%S")
