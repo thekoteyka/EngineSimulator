@@ -101,6 +101,9 @@ root['bg'] = BG
 root.resizable(False, False)
 centerwindow(root)
 
+# ВАЖНО: УКАЖИ СВОЮ СИСТЕМУ WINDOWS или MACOS
+SYSTEM = 'mac' # win / mac
+
 MUTE_ALL_SOUNDS = False
 PLAY_BACKGROUND_MUSIC = True
 
@@ -195,8 +198,12 @@ def probability(percent):  # Расчёт вероятности в процен
 
 def pressed(e=None):  # При нажатии
     global last_key
-    if not (e.keycode == 90 or e.keycode == 88 or e.keycode == 67):  # Проверяем, что мы нажали z, x или c
-        return
+    if SYSTEM == 'win':
+        if not (e.keycode == 90 or e.keycode == 88 or e.keycode == 67):  # Проверяем, что мы нажали z, x или c
+            return
+    elif SYSTEM == 'mac':
+        if not (e.keycode == 100663418 or e.keycode == 117440632 or e.keycode == 134217827 or e.keycode == 100664399 or e.keycode == 117441607 or e.keycode == 134218817):
+            return
     
     if help_actiavted:  # Если была активирована помощь, то закрываем её
         help1_lbl.destroy()
@@ -350,7 +357,7 @@ def logic():  # Динамическая логика
     if ticks == 700 and last_key is None:  # Если прошло уже 700 тиков и не было нажато клавиш управления, то вызываем помощь
         global help_actiavted, help1_lbl
         help_actiavted = True
-        help1_lbl = Label(text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре.\nНачни играть чтобы убрать это сообщение\n                       ", justify='left', font='Arial 15', bg=BG)
+        help1_lbl = Label(text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре.\nНачни играть чтобы убрать это сообщение\nНе забудь указать свою систему в 105 стр", justify='left', font='Arial 15', bg=BG)
         help1_lbl.place(x=1, y=5)
 
 
@@ -379,7 +386,7 @@ burn_progress = ProgressBar(root, BG, 80, 75, 250, 100)
 
 # Тики - основная еденица времени. 1 тик = <ticks_delay> милисекунд
 ticks = 0  # Общее количиство тиков
-ticks_delay = 10
+ticks_delay = 10  # По умолчанию: 10
 from time import time
 def run():  # Основной цикл программы
     global ticks
