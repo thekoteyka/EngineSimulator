@@ -117,10 +117,13 @@ if platform.system() == 'Windows':
 elif platform.system() == 'Darwin':
     SYSTEM = 'maс'
 
+if SYSTEM == 'mac':
+    print(f'{Fore.RED}На MacOS пока-что не работает сбрасывание перегрева, поэтому он выключен')
+
 MUTE_ALL_SOUNDS = False
 PLAY_BACKGROUND_MUSIC = True
 
-modes = "davlenie", "burn"  # Режимы игры (только для справки)
+MODES = "davlenie", "burn"  # Режимы игры (только для справки)
 mode = "davlenie"  # Текущий режим
 last_key = None  # Номер последней нажатой клавиши управления
 started = False  # Запущен ли двигатель (скорость поднималась)
@@ -128,6 +131,9 @@ distance = 0  # Пройденное расстояние
 help_actiavted = False  # Была ли активирована помощь (при бездействии)
 ticks_showed = False
 died = False
+
+GLOBAL_OVERHEAT_STATES = {1: 'lime', 2: "yellow", 3: 'orange', 4: 'red'}
+global_overheat = 1
 
 davlenie_blocked = False  # Заблокирована ли подкачка давления
 burn_reduce_lock = False  # Заблокирована ли верояность пробития клапана сгорания
@@ -255,6 +261,35 @@ def open_scores(e=None):
         )
         txt.insert(END, choice(no_records_texts))
 
+def set_global_overheat_colour():
+    global_overheat_marker.configure(bg=GLOBAL_OVERHEAT_STATES[global_overheat])
+
+def increase_global_overheat():
+    if SYSTEM == 'mac': #TODO
+        return
+    global global_overheat
+    global_overheat += 1
+    if global_overheat > len(GLOBAL_OVERHEAT_STATES):
+        lose()
+        return
+    set_global_overheat_colour()
+
+def reduce_global_overheat():
+    global davlenie_blocked
+    davlenie_blocked = True
+    davlenie_progress.canvas.itemconfig(speed_progress.marker, fill="red")
+    global_overheat_marker.configure(bg='purple')
+    safe_sleep(2000)
+
+    global global_overheat
+    if global_overheat >= 2:
+        global_overheat -= 1
+    set_global_overheat_colour()
+
+    davlenie_progress.canvas.itemconfig(speed_progress.marker, fill="purple")
+    davlenie_blocked = False
+
+
 
 # 2 давления = 1 сгорание
 # 2 сгорания = 1 скорость -> 4 давления = 1 скорость
@@ -329,7 +364,7 @@ def add_score(score):
 
 
 def lose():
-    global started, last_key, distance, died
+    global started, last_key, distance, died, global_overheat
     if died:
         return
     died = True
@@ -337,7 +372,7 @@ def lose():
     add_score(distance)
 
     def continue_game(e=None):
-        global started, last_key, distance, died
+        global started, last_key, distance, died, global_overheat
         press_space_to_continue_lbl.destroy()
         loading_lbl = Label(root, text='загрузка', bg=BG, fg='lightgray')  #TODO
         loading_lbl.place(x=165, y=90)
@@ -350,6 +385,8 @@ def lose():
         last_key = "None"  # Чтобы не вызывалась помощь
         started = False  # Глушим двигатель
         distance = 0  # Сбрасываем дистанцию
+        global_overheat = 1
+        set_global_overheat_colour()
         distance_lbl.configure(text=0)
         root.bind(f"<Shift-KeyRelease>", switch_mode)  # Биндим шифт
         loading_lbl.destroy()
@@ -387,8 +424,8 @@ def pressed(e=None):  # При нажатии
     global last_key
     if SYSTEM == "win":
         if not (
-            e.keycode == 90 or e.keycode == 88 or e.keycode == 67
-        ):  # Проверяем, что мы нажали z, x или c
+            e.keycode == 90 or e.keycode == 88 or e.keycode == 67 or e.keycode == 86
+        ):  # Проверяем, что мы нажали z, x, c или v
             return
     elif SYSTEM == "mac":
         if not (
@@ -400,6 +437,10 @@ def pressed(e=None):  # При нажатии
             or e.keycode == 134218817
         ):
             return
+        
+    if e.keycode == 86:
+        reduce_global_overheat()
+        return
 
     if help_actiavted:  # Если была активирована помощь, то закрываем её
         help1_lbl.destroy()
@@ -569,6 +610,10 @@ def logic():  # Динамическая логика
             overheat = True
             davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill="orange")
 
+    if every_n_sec(1):
+        if probability(5):
+            increase_global_overheat()
+
     # Каждые 10 секунд выключаем перегрев, если он был
     if every_n_sec(10):
         if overheat:
@@ -587,6 +632,8 @@ def logic():  # Динамическая логика
         )
         help1_lbl.place(x=1, y=5)
 
+global_overheat_marker = Canvas(root, bg=GLOBAL_OVERHEAT_STATES[1], highlightthickness=0)
+global_overheat_marker.place(x=384, y=95, width=12, height=12)
 
 davlenie_lbl = Label(text="<", font="Arial 18", bg=BG, fg="white")
 davlenie_lbl.place(x=330, y=38)
@@ -610,8 +657,13 @@ root.bind('q', open_scores)
 root.bind(f"<KeyRelease>", pressed)  # Биндим кнопки для управления на отпускание клавиш
 root.bind(f"<Shift-KeyRelease>", switch_mode)
 
+def on_closing():
+    global ticks_delay
+    ticks_delay = 1
+    root.destroy()
+
 root.protocol(
-    "WM_DELETE_WINDOW", lambda: root.destroy()
+    "WM_DELETE_WINDOW", on_closing
 )  # При закрытии окна уничтожаем окно (важно, так как у нас while True)
 
 speed_progress = ProgressBar(root, BG, 80, 10, 250, 30)  # Делаем прогресс бары
