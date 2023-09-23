@@ -144,6 +144,9 @@ overheat = False
 
 mixer.init()  # Инициализация для звуков
 
+if IGNORE_EXCEPTIONS:
+    sys.stderr = open(os.devnull, "w")
+
 def show_no_file_error(file: str):
     print(f"\n\n{Fore.RED}Не найден файл {file}")
     print(f'Сейчас ты находишься в {Fore.YELLOW}{os.getcwd()}\\')
@@ -662,8 +665,6 @@ root.bind(f"<KeyRelease>", pressed)  # Биндим кнопки для упра
 root.bind(f"<Shift-KeyRelease>", switch_mode)
 
 def on_closing():
-    with open(os.devnull, 'w') as f:  # Чтобы убрать вывод от различных ошибок
-        sys.stdout = f
     global ticks_delay
     ticks_delay = 0
     root.destroy()
