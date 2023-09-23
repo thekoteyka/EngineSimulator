@@ -124,10 +124,10 @@ modes = "davlenie", "burn"  # Режимы игры (только для спр�
 mode = "davlenie"  # Текущий режим
 last_key = None  # Номер последней нажатой клавиши управления
 started = False  # Запущен ли двигатель (скорость поднималась)
-running = True  # Запущена ли игра
 distance = 0  # Пройденное расстояние
 help_actiavted = False  # Была ли активирована помощь (при бездействии)
 ticks_showed = False
+died = False
 
 davlenie_blocked = False  # Заблокирована ли подкачка давления
 burn_reduce_lock = False  # Заблокирована ли верояность пробития клапана сгорания
@@ -295,7 +295,7 @@ def increase_speed():  # Увеличить скорость (если возм�
 def reduce_speed():  # Стабильное уменьшение скорости
     speed = speed_progress.value
     if speed <= 0:
-        lose("Машина заглохла")  # Проигрываем
+        lose()  # Проигрываем
         return
     speed_progress.set_value(speed - 1)
 
@@ -328,33 +328,55 @@ def add_score(score):
         json.dump(records, f)
 
 
-def lose(reason):
-    global running, started, last_key, distance
+def lose():
+    global started, last_key, distance, died
+    if died:
+        return
+    died = True
     playsound("death")  # Играем звук смерти из дорс
-    running = False  # Временно останавливаем игру
     add_score(distance)
 
-    if check_if_new_record(distance):
-        showinfo(
-        "Новый рекорд!", f"Причина: {reason}\nНовый рекорд! {distance} амогусов"
-        )
-    else:
-        showerror(
-            "Ты проиграл ахахахахаха", f"Причина: {reason}\nДистанция: {distance} амогусов"
-        )
-    speed_progress.reset()  # Сбрасываем прогресс бары
-    burn_progress.reset()
-    davlenie_progress.reset()
-    last_key = "None"  # Чтобы не вызывалась помощь
-    started = False  # Глушим двигатель
-    distance = 0  # Сбрасываем дистанцию
-    distance_lbl.configure(text=0)
-    root.bind(f"<Shift-KeyRelease>", switch_mode)  # Биндим шифт
+    def continue_game(e=None):
+        global started, last_key, distance, died
+        press_space_to_continue_lbl.destroy()
+        loading_lbl = Label(root, text='загрузка', bg=BG, fg='lightgray')  #TODO
+        loading_lbl.place(x=165, y=90)
+        root.update()
 
-    davlenie_progress.update_all()  # Обновляем новую позицию прогресс баров
-    playsound("stop")  # Останавливаем звук смерти (с затуханием)
-    playsound("bg1", 10, 5000)
-    running = True  # Снова запускаем игру
+        death_lbl.destroy()
+        speed_progress.reset()  # Сбрасываем прогресс бары
+        burn_progress.reset()
+        davlenie_progress.reset()
+        last_key = "None"  # Чтобы не вызывалась помощь
+        started = False  # Глушим двигатель
+        distance = 0  # Сбрасываем дистанцию
+        distance_lbl.configure(text=0)
+        root.bind(f"<Shift-KeyRelease>", switch_mode)  # Биндим шифт
+        loading_lbl.destroy()
+        davlenie_progress.update_all()  # Обновляем новую позицию прогресс баров
+        playsound("stop")  # Останавливаем звук смерти (с затуханием)
+        playsound("bg1", 10, 5000)
+        
+        died = False
+
+
+    if check_if_new_record(distance):
+        # showinfo(
+        # "Новый рекорд!", f"Причина: {reason}\nНовый рекорд! {distance} амогусов"
+        # )
+        death_lbl = Label(root, text=f'           Новый рекорд: {distance} амогусов                \n\n\n\n\n\n\n\n', justify='left', font='Arial 15', bg=BG)
+        death_lbl.place(x=1, y=5)
+    else:
+        # showerror(
+        #     "Ты проиграл ахахахахаха", f"Причина: {reason}\nДистанция: {distance} амогусов"
+        # )
+
+        death_lbl = Label(root, text=f'   Ты проиграл! Дистанция: {distance} амогусов      \n\n\n\n\n\n\n\n', justify='left', font='Arial 15', bg=BG, width=38)
+        death_lbl.place(x=0, y=5)
+    
+    press_space_to_continue_lbl = Label(root, text="нажми пробел для продолжения", bg=BG, fg='lightgray')
+    press_space_to_continue_lbl.place(x=100, y=90)
+    root.bind('<space>', continue_game)
 
 
 def probability(percent):  # Расчёт вероятности в процентах
@@ -618,8 +640,7 @@ try:
         playsound("bg1", 10, 5000)
     if not CHECK_TRUE_TICKRATE:  # Запуск цикла игры
         while root.winfo_exists():
-            if running:
-                run()
+            run()
     else:  # Проверка тиков
         print(f"{Fore.CYAN}Проверка тиков")
         start = time()
@@ -636,4 +657,4 @@ except Exception as e:
         ('invalid command name ".!canvas3"',),
     )
     if not e.args in skipping_exceptions:
-        print(f"{Fore.RED}{e.args}")
+        print(f"{Fore.RED}{e}")
