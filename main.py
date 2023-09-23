@@ -266,7 +266,10 @@ def open_scores(e=None):
         txt.insert(END, choice(no_records_texts))
 
 def set_global_overheat_colour():
-    global_overheat_marker.configure(bg=GLOBAL_OVERHEAT_STATES[global_overheat])
+    try:
+        global_overheat_marker.configure(bg=GLOBAL_OVERHEAT_STATES[global_overheat])
+    except Exception:
+        ...
 
 def increase_global_overheat():
     global global_overheat
@@ -404,7 +407,7 @@ def lose(reason):
         # showinfo(
         # "Новый рекорд!", f"Причина: {reason}\nНовый рекорд! {distance} амогусов"
         # )
-        death_lbl = Label(root, text=f'           Новый рекорд: {distance} амогусов                \n   {reason}\n\n\n\n\n\n\n', justify='left', font='Arial 15', bg=BG)
+        death_lbl = Label(root, text=f'           Новый рекорд: {distance} амогусов                \n           {reason}\n\n\n\n\n\n\n', justify='left', font='Arial 15', bg=BG)
         death_lbl.place(x=1, y=5)
     else:
         # showerror(
