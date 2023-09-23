@@ -15,6 +15,13 @@ import platform
 import os
 import sys
 
+'''
+Игра получилась реально большой, поэтому вот обучение на неё:
+
+    https://telegra.ph/Tutor-na-EngineSimulator-09-23
+
+'''
+
 BG = "gray60"
 
 all_progress_bars = []  # Все прогресс бары
@@ -681,7 +688,7 @@ def logic():  # Динамическая логика
         global help_actiavted, help1_lbl
         help_actiavted = True
         help1_lbl = Label(
-            text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре.\nНачни играть чтобы убрать это сообщение\n\n",
+            text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре.\nНачни играть чтобы убрать это сообщение\nСсылка на обучение в начале кода!\n",
             justify="left",
             font="Arial 15",
             bg=BG,
@@ -709,10 +716,9 @@ distance_lbl = Label(
 distance_lbl.place(x=330, y=7)
 
 root.bind('q', open_scores)
-
 root.bind(f"<KeyRelease>", pressed)  # Биндим кнопки для управления на отпускание клавиш
 root.bind(f"<Shift-KeyRelease>", switch_mode)
-root.bind('t', check_true_tickrate)
+root.bind('ttt', check_true_tickrate)
 
 def on_closing():
     global ticks_delay
@@ -749,7 +755,7 @@ try:
     while root.winfo_exists():
         if running:
             run()
-            
+
 except Exception as e:
     if not IGNORE_EXCEPTIONS:
         skipping_exceptions = (
