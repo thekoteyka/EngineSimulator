@@ -269,7 +269,7 @@ def increase_global_overheat():
     global global_overheat
     global_overheat += 1
     if global_overheat > len(GLOBAL_OVERHEAT_STATES):
-        lose()
+        lose("Перегрев двигателя")
         return
     set_global_overheat_colour()
 
@@ -329,7 +329,7 @@ def increase_speed():  # Увеличить скорость (если возм�
 def reduce_speed():  # Стабильное уменьшение скорости
     speed = speed_progress.value
     if speed <= 0:
-        lose()  # Проигрываем
+        lose('Машина заглохла')  # Проигрываем
         return
     speed_progress.set_value(speed - 1)
 
@@ -362,7 +362,7 @@ def add_score(score):
         json.dump(records, f)
 
 
-def lose():
+def lose(reason):
     global started, last_key, distance, died, global_overheat
     if died:
         return
@@ -386,6 +386,7 @@ def lose():
         distance = 0  # Сбрасываем дистанцию
         global_overheat = 1
         set_global_overheat_colour()
+        distance_lbl.configure(font="Arial 15")
         distance_lbl.configure(text=0)
         root.bind(f"<Shift-KeyRelease>", switch_mode)  # Биндим шифт
         loading_lbl.destroy()
@@ -400,14 +401,14 @@ def lose():
         # showinfo(
         # "Новый рекорд!", f"Причина: {reason}\nНовый рекорд! {distance} амогусов"
         # )
-        death_lbl = Label(root, text=f'           Новый рекорд: {distance} амогусов                \n\n\n\n\n\n\n\n', justify='left', font='Arial 15', bg=BG)
+        death_lbl = Label(root, text=f'           Новый рекорд: {distance} амогусов                \n   {reason}\n\n\n\n\n\n\n', justify='left', font='Arial 15', bg=BG)
         death_lbl.place(x=1, y=5)
     else:
         # showerror(
         #     "Ты проиграл ахахахахаха", f"Причина: {reason}\nДистанция: {distance} амогусов"
         # )
 
-        death_lbl = Label(root, text=f'   Ты проиграл! Дистанция: {distance} амогусов      \n\n\n\n\n\n\n\n', justify='left', font='Arial 15', bg=BG, width=38)
+        death_lbl = Label(root, text=f'   Ты проиграл! Дистанция: {distance} амогусов      \n   {reason}\n\n\n\n\n\n\n', justify='left', font='Arial 15', bg=BG, width=38)
         death_lbl.place(x=0, y=5)
     
     press_space_to_continue_lbl = Label(root, text="нажми пробел для продолжения", bg=BG, fg='lightgray')
