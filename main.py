@@ -13,6 +13,7 @@ import json
 import datetime
 import platform
 import os
+import sys
 
 BG = "gray60"
 
@@ -117,12 +118,12 @@ if platform.system() == 'Windows':
 elif platform.system() == 'Darwin':
     SYSTEM = 'maс'
 
-if SYSTEM == 'mac':
-    print(f'{Fore.RED}На MacOS пока-что не работает сбрасывание перегрева, поэтому он выключен')
 
 MUTE_ALL_SOUNDS = False
 PLAY_BACKGROUND_MUSIC = True
 
+
+IGNORE_EXCEPTIONS = True
 MODES = "davlenie", "burn"  # Режимы игры (только для справки)
 mode = "davlenie"  # Текущий режим
 last_key = None  # Номер последней нажатой клавиши управления
@@ -265,8 +266,6 @@ def set_global_overheat_colour():
     global_overheat_marker.configure(bg=GLOBAL_OVERHEAT_STATES[global_overheat])
 
 def increase_global_overheat():
-    if SYSTEM == 'mac': #TODO
-        return
     global global_overheat
     global_overheat += 1
     if global_overheat > len(GLOBAL_OVERHEAT_STATES):
@@ -435,10 +434,12 @@ def pressed(e=None):  # При нажатии
             or e.keycode == 100664399
             or e.keycode == 117441607
             or e.keycode == 134218817
+            or e.keycode == 150995062
+            or e.keycode == 150996028
         ):
             return
         
-    if e.keycode == 86:
+    if e.keycode == 86 or e.keycode == 150995062 or e.keycode == 150996028:
         reduce_global_overheat()
         return
 
@@ -492,6 +493,8 @@ def every_n_tick(n):  # Проверяет, наступил ли n-ный ти�
 
 
 def every_n_sec(seconds):  # Проверяет, прошло ли нужное время, но уже в секундах
+    if ticks_delay == 0:
+        return ticks % seconds * 1000
     return ticks % (seconds * 1000 / ticks_delay) == 0
 
 
@@ -658,8 +661,10 @@ root.bind(f"<KeyRelease>", pressed)  # Биндим кнопки для упра
 root.bind(f"<Shift-KeyRelease>", switch_mode)
 
 def on_closing():
+    with open(os.devnull, 'w') as f:  # Чтобы убрать вывод от различных ошибок
+        sys.stdout = f
     global ticks_delay
-    ticks_delay = 1
+    ticks_delay = 0
     root.destroy()
 
 root.protocol(
@@ -702,11 +707,12 @@ try:
             f"Истинная задержка тиков: {Fore.YELLOW}{round(time()-start, 1)}\n{Fore.WHITE}Задержка тиков в идеальном случае: {Fore.YELLOW}{ticks_delay}.0"
         )
 except Exception as e:
-    skipping_exceptions = (
-        ('can\'t invoke "winfo" command: application has been destroyed',),
-        ('invalid command name ".!canvas"',),
-        ('invalid command name ".!canvas2"',),
-        ('invalid command name ".!canvas3"',),
-    )
-    if not e.args in skipping_exceptions:
-        print(f"{Fore.RED}{e}")
+    if not IGNORE_EXCEPTIONS:
+        skipping_exceptions = (
+            ('can\'t invoke "winfo" command: application has been destroyed',),
+            ('invalid command name ".!canvas"',),
+            ('invalid command name ".!canvas2"',),
+            ('invalid command name ".!canvas3"',),
+        )
+        if not e.args in skipping_exceptions:
+            print(f"{Fore.RED}{e}")
