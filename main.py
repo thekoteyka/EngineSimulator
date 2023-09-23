@@ -8,10 +8,11 @@ from tkinter import *
 from tkinter.messagebox import showerror, showinfo
 from pygame import mixer
 from random import uniform, choice
-from colorama import init, Fore
+from colorama import init, Fore, Style
 import json
 import datetime
 import platform
+import os
 
 BG = "gray60"
 
@@ -136,6 +137,10 @@ overheat = False
 
 mixer.init()  # Инициализация для звуков
 
+def show_no_file_error(file: str):
+    print(f"\n\n{Fore.RED}Не найден файл {file}")
+    print(f'Сейчас ты находишься в {Fore.YELLOW}{os.getcwd()}\\')
+    print(f'Однако нужно быть в директории {Style.BRIGHT}{Fore.YELLOW}{__file__[:-7]}')
 
 def playsound(sound, loops=0, fade=200):  # Играет звуки
     if MUTE_ALL_SOUNDS:
@@ -144,9 +149,12 @@ def playsound(sound, loops=0, fade=200):  # Играет звуки
     if sound == "stop":
         mixer.music.fadeout(1000)
         return
-
-    mixer.music.load(f"{sound}.mp3")
-    mixer.music.play(loops=loops, fade_ms=fade)
+    
+    try:
+        mixer.music.load(f"{sound}.mp3")
+        mixer.music.play(loops=loops, fade_ms=fade)
+    except:
+        show_no_file_error('с музыкой')
 
 
 def open_scores(e=None):
@@ -293,9 +301,12 @@ def reduce_speed():  # Стабильное уменьшение скорост�
 
 
 def get_scores() -> dict:
-    with open("scores.json", "r") as f:
-        records = json.load(f)
-        return records
+    try:
+        with open("scores.json", "r") as f:
+            records = json.load(f)
+            return records
+    except Exception:
+        show_no_file_error('со статистикой')
 
 
 def check_if_new_record(distance):
