@@ -121,9 +121,10 @@ elif platform.system() == 'Darwin':
 
 MUTE_ALL_SOUNDS = False
 PLAY_BACKGROUND_MUSIC = True
+DISABLE_HELP = True
 
 
-IGNORE_EXCEPTIONS = True
+IGNORE_EXCEPTIONS = 0
 MODES = "davlenie", "burn"  # Режимы игры (только для справки)
 mode = "davlenie"  # Текущий режим
 last_key = None  # Номер последней нажатой клавиши управления
@@ -132,6 +133,7 @@ distance = 0  # Пройденное расстояние
 help_actiavted = False  # Была ли активирована помощь (при бездействии)
 ticks_showed = False
 died = False
+running = True
 
 GLOBAL_OVERHEAT_STATES = {1: 'lime', 2: "yellow", 3: 'orange', 4: 'red'}
 global_overheat = 1
@@ -142,10 +144,47 @@ speed_invisible_lock = False
 ready_to_visible_speed = False
 overheat = False
 
+checking_tickrate = False
+
 mixer.init()  # Инициализация для звуков
 
 if IGNORE_EXCEPTIONS:
     sys.stderr = open(os.devnull, "w")
+
+def check_true_tickrate(e=None):
+    global running, checking_tickrate
+    if checking_tickrate:
+        return
+    
+    checking_tickrate = True
+    global_overheat_marker.configure(bg='blue')
+    print(f"{Fore.CYAN}Проверка тиков")
+
+    for i in range(5):
+        global_overheat_marker.configure(bg='cyan')
+        safe_sleep(100)
+        global_overheat_marker.configure(bg='blue')
+        safe_sleep(100)
+
+    start = time()
+    running = False
+
+    for i in range(1000):
+        run()
+    
+    print(f'Результат: {Fore.YELLOW}{round((ticks_delay / round(time()-start, 1))*100, 1)}%')
+    print(f"Истинная задержка тиков: {Fore.YELLOW}{round(time()-start, 1)}")
+
+    running = True
+
+    for i in range(5):
+        global_overheat_marker.configure(bg='cyan')
+        safe_sleep(100)
+        global_overheat_marker.configure(bg='blue')
+        safe_sleep(100)
+    
+    checking_tickrate = False
+    set_global_overheat_colour()
 
 def show_no_file_error(file: str):
     print(f"\n\n{Fore.RED}Не найден файл {file}")
@@ -266,6 +305,8 @@ def open_scores(e=None):
         txt.insert(END, choice(no_records_texts))
 
 def set_global_overheat_colour():
+    if checking_tickrate:
+        return
     try:
         global_overheat_marker.configure(bg=GLOBAL_OVERHEAT_STATES[global_overheat])
     except Exception:
@@ -635,6 +676,8 @@ def logic():  # Динамическая логика
 
     # Если прошло уже 700 тиков и не было нажато клавиш управления, то вызываем помощь
     if ticks == 700 and last_key is None:
+        if DISABLE_HELP:
+            return
         global help_actiavted, help1_lbl
         help_actiavted = True
         help1_lbl = Label(
@@ -669,6 +712,7 @@ root.bind('q', open_scores)
 
 root.bind(f"<KeyRelease>", pressed)  # Биндим кнопки для управления на отпускание клавиш
 root.bind(f"<Shift-KeyRelease>", switch_mode)
+root.bind('t', check_true_tickrate)
 
 def on_closing():
     global ticks_delay
@@ -699,20 +743,13 @@ def run():  # Основной цикл программы
 
 
 init(autoreset=True)
-CHECK_TRUE_TICKRATE = False
 try:
     if PLAY_BACKGROUND_MUSIC:
         playsound("bg1", 10, 5000)
-    if not CHECK_TRUE_TICKRATE:  # Запуск цикла игры
-        while root.winfo_exists():
+    while root.winfo_exists():
+        if running:
             run()
-    else:  # Проверка тиков
-        print(f"{Fore.CYAN}Проверка тиков")
-        start = time()
-        for i in range(1000):
-            run()
-        print(f'Результат: {Fore.YELLOW}{round((ticks_delay / round(time()-start, 1))*100, 1)}%')
-        print(f"Истинная задержка тиков: {Fore.YELLOW}{round(time()-start, 1)}")
+            
 except Exception as e:
     if not IGNORE_EXCEPTIONS:
         skipping_exceptions = (
