@@ -614,7 +614,7 @@ def logic():  # Динамическая логика
             davlenie_progress.canvas.itemconfig(davlenie_progress.marker, fill="orange")
 
     if every_n_sec(1):
-        if probability(5):
+        if probability(10):
             increase_global_overheat()
 
     # Каждые 10 секунд выключаем перегрев, если он был
