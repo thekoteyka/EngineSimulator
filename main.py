@@ -272,6 +272,8 @@ def set_global_overheat_colour():
         ...
 
 def increase_global_overheat():
+    if not started:
+        return
     global global_overheat
     global_overheat += 1
     if global_overheat > len(GLOBAL_OVERHEAT_STATES):
@@ -399,6 +401,7 @@ def lose(reason):
         davlenie_progress.update_all()  # Обновляем новую позицию прогресс баров
         playsound("stop")  # Останавливаем звук смерти (с затуханием)
         playsound("bg1", 10, 5000)
+        root.unbind('<space>')
         
         died = False
 
@@ -635,7 +638,7 @@ def logic():  # Динамическая логика
         global help_actiavted, help1_lbl
         help_actiavted = True
         help1_lbl = Label(
-            text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре.\nНачни играть чтобы убрать это сообщение\n",
+            text="Управление осуществляется кнопками\nz, x, c, Shift на клавиатуре.\nНачни играть чтобы убрать это сообщение\n\n",
             justify="left",
             font="Arial 15",
             bg=BG,
@@ -708,9 +711,8 @@ try:
         start = time()
         for i in range(1000):
             run()
-        print(
-            f"Истинная задержка тиков: {Fore.YELLOW}{round(time()-start, 1)}\n{Fore.WHITE}Задержка тиков в идеальном случае: {Fore.YELLOW}{ticks_delay}.0"
-        )
+        print(f'Результат: {Fore.YELLOW}{round((ticks_delay / round(time()-start, 1))*100, 1)}%')
+        print(f"Истинная задержка тиков: {Fore.YELLOW}{round(time()-start, 1)}")
 except Exception as e:
     if not IGNORE_EXCEPTIONS:
         skipping_exceptions = (
