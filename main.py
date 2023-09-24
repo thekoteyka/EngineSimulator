@@ -125,14 +125,15 @@ if platform.system() == 'Windows':
 elif platform.system() == 'Darwin':
     SYSTEM = 'maс'
 
+with open('settings.json', 'r') as f:
+    sett:dict = json.load(f)
 
-MUTE_ALL_SOUNDS = False
-PLAY_BACKGROUND_MUSIC = True
-DISABLE_HELP = True
+    MUTE_ALL_SOUNDS = sett["mute_all_sounds"]
+    PLAY_BACKGROUND_MUSIC = sett["play_background_music"]
+    DISABLE_HELP = sett["disable_help"]
+    IGNORE_EXCEPTIONS = sett["ignore_exceptions"]
 
-
-IGNORE_EXCEPTIONS = 0
-MODES = "davlenie", "burn"  # Режимы игры (только для справки)
+MODES = "davlenie", "burn"  # Режимы игры (только для справки)  
 mode = "davlenie"  # Текущий режим
 last_key = None  # Номер последней нажатой клавиши управления
 started = False  # Запущен ли двигатель (скорость поднималась)
@@ -199,11 +200,11 @@ def show_no_file_error(file: str):
     print(f'Однако нужно быть в директории {Style.BRIGHT}{Fore.YELLOW}{__file__[:-7]}')
 
 def playsound(sound, loops=0, fade=200):  # Играет звуки
-    if MUTE_ALL_SOUNDS:
-        return
-
     if sound == "stop":
         mixer.music.fadeout(1000)
+        return
+
+    if MUTE_ALL_SOUNDS:
         return
     
     try:
@@ -211,6 +212,129 @@ def playsound(sound, loops=0, fade=200):  # Играет звуки
         mixer.music.play(loops=loops, fade_ms=fade)
     except:
         show_no_file_error('с музыкой')
+
+def open_settings(e=None):
+    s = Tk()
+    s.geometry("400x110")
+    s.title("Настройки")
+    s["bg"] = BG
+    s.resizable(False, False)
+    centerwindow(s)
+
+    def switch(name, fromm=None):
+        if name == 'mute_all_sounds':
+            if mute_all_sounds_var.get():
+                mute_all_sounds_btn.deselect()
+            else:
+                mute_all_sounds_btn.select()
+        elif name == 'play_bg_music':
+            if play_bg_music_var.get():
+                play_bg_music_btn.deselect()
+            else:
+                play_bg_music_btn.select()
+        elif name == 'disable_help':
+            if disable_help_var.get():
+                disable_help_btn.deselect()
+            else:
+                disable_help_btn.select()
+        elif name == 'ignore_exc':
+            if ignore_exc_var.get():
+                ignore_exc_btn.deselect()
+            else:
+                ignore_exc_btn.select()
+
+        save(name)
+
+    def save(fromm=None):
+        global MUTE_ALL_SOUNDS
+        with open('settings.json', 'w') as f:
+            json.dump({
+                'mute_all_sounds':       mute_all_sounds_var.get(),
+                'play_background_music': play_bg_music_var.get(),
+                'disable_help':          disable_help_var.get(),
+                'ignore_exceptions':     ignore_exc_var.get()
+            }, f)
+
+        MUTE_ALL_SOUNDS = mute_all_sounds_var.get()
+
+        if fromm == 'mute_all_sounds':
+            if mute_all_sounds_var.get():
+                playsound('stop')
+            else:
+                if play_bg_music_var.get():
+                    playsound('bg1', 10, fade=5000)
+
+        if fromm == 'play_bg_music': # Если меняли фоновую музыку
+            if play_bg_music_var.get():
+                playsound('bg1', 10, fade=5000)
+            
+            else:
+                playsound('stop')
+
+    def load():
+        with open('settings.json', 'r') as f:
+            settings:dict = json.load(f)
+            for name, value in settings.items():
+                if name == 'mute_all_sounds':
+                    if not value:
+                        mute_all_sounds_btn.deselect()
+                    else:
+                        mute_all_sounds_btn.select()
+                elif name == 'play_background_music':
+                    if not value:
+                        play_bg_music_btn.deselect()
+                    else:
+                        play_bg_music_btn.select()
+                elif name == 'disable_help':
+                    if not value:
+                        disable_help_btn.deselect()
+                    else:
+                        disable_help_btn.select()
+                elif name == 'ignore_exceptions':
+                    if not value:
+                        ignore_exc_btn.deselect()
+                    else:
+                        ignore_exc_btn.select()
+
+
+
+    mute_all_sounds_var = BooleanVar(s)
+    play_bg_music_var = BooleanVar(s)
+    disable_help_var = BooleanVar(s)
+    ignore_exc_var = BooleanVar(s)
+
+    Label(s, text='1', bg=BG, font='Arial 12').place(x=0, y=0)
+    Label(s, text='2', bg=BG, font='Arial 12').place(x=0, y=30)
+    Label(s, text='3', bg=BG, font='Arial 12').place(x=0, y=60)
+    Label(s, text='4', bg=BG, font='Arial 12').place(x=0, y=90)
+
+    Label(s, text='Заглушить все звуки', bg=BG, font='Arial 12').place(x=40, y=0)
+    Label(s, text='Фоновая музыка', bg=BG, font='Arial 12').place(x=40, y=30)
+    Label(s, text='Отключить помощь', bg=BG, font='Arial 12').place(x=40, y=60)
+    Label(s, text='Игнорировать ошибки в терминале', bg=BG, font='Arial 12').place(x=40, y=90)
+
+    mute_all_sounds_btn = Checkbutton(s,variable=mute_all_sounds_var, bg=BG, activebackground=BG, activeforeground='lightgray',
+                 onvalue=True, offvalue=False, command=lambda: save('mute_all_sounds'))
+    mute_all_sounds_btn.place(x=15, y=0)
+
+    play_bg_music_btn = Checkbutton(s, variable=play_bg_music_var, bg=BG, activebackground=BG, activeforeground='lightgray',
+                 onvalue=True, offvalue=False, command=lambda: save('play_bg_music'))
+    play_bg_music_btn.place(x=15, y=30)
+
+    disable_help_btn = Checkbutton(s, variable=disable_help_var, bg=BG, activebackground=BG, activeforeground='lightgray',
+                 onvalue=True, offvalue=False, command=save)
+    disable_help_btn.place(x=15, y=60)
+
+    ignore_exc_btn = Checkbutton(s, variable=ignore_exc_var, bg=BG, activebackground=BG, activeforeground='lightgray',
+                 onvalue=True, offvalue=False, command=save)
+    ignore_exc_btn.place(x=15, y=90)
+
+    load()
+
+    s.bind('1', lambda e: switch('mute_all_sounds'))
+    s.bind('2', lambda e: switch('play_bg_music'))
+    s.bind('3', lambda e: switch('disable_help'))
+    s.bind('4', lambda e: switch('ignore_exc'))
 
 
 def open_scores(e=None):
@@ -716,6 +840,7 @@ distance_lbl = Label(
 distance_lbl.place(x=330, y=7)
 
 root.bind('q', open_scores)
+root.bind('w', open_settings)
 root.bind(f"<KeyRelease>", pressed)  # Биндим кнопки для управления на отпускание клавиш
 root.bind(f"<Shift-KeyRelease>", switch_mode)
 root.bind('ttt', check_true_tickrate)
@@ -725,9 +850,7 @@ def on_closing():
     ticks_delay = 0
     root.destroy()
 
-root.protocol(
-    "WM_DELETE_WINDOW", on_closing
-)  # При закрытии окна уничтожаем окно (важно, так как у нас while True)
+root.protocol("WM_DELETE_WINDOW", on_closing)  # При закрытии окна уничтожаем окно (важно, так как у нас while True)
 
 speed_progress = ProgressBar(root, BG, 80, 10, 250, 30)  # Делаем прогресс бары
 davlenie_progress = ProgressBar(root, BG, 80, 43, 250, 100)
