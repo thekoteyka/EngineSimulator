@@ -335,6 +335,7 @@ def open_settings(e=None):
     s.bind('2', lambda e: switch('play_bg_music'))
     s.bind('3', lambda e: switch('disable_help'))
     s.bind('4', lambda e: switch('ignore_exc'))
+    s.bind('<Escape>', lambda e: s.destroy())
 
 
 def open_scores(e=None):
@@ -345,7 +346,7 @@ def open_scores(e=None):
     more.resizable(False, False)
     centerwindow(more)
 
-    # more.protocol("WM_DELETE_WINDOW", lambda: root.destroy()) # для разработки
+    more.bind('<Escape>', lambda e: more.destroy())
 
     scores_exists = bool(get_scores())
 
